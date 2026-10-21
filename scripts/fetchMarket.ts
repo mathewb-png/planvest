@@ -2,21 +2,12 @@ import { writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Candle } from "../src/sma.ts";
-
-interface Instrument {
-  symbol: string;
-  yahoo: string;
-  name: string;
-  role: string;
-  kind: "index" | "etf" | "yield";
-  candles: boolean;
-}
+import { UNIVERSE, type AssetKind } from "../src/universe.ts";
 
 export interface Quote {
   symbol: string;
   name: string;
-  role: string;
-  kind: Instrument["kind"];
+  kind: AssetKind;
   price: number;
   changePct: number | null;
   yearReturnPct: number | null;
@@ -31,20 +22,22 @@ export interface MarketFile {
   candles: Record<string, Candle[]>;
 }
 
-const INSTRUMENTS: Instrument[] = [
-  { symbol: "SPX", yahoo: "^GSPC", name: "S&P 500", role: "US large-cap stocks", kind: "index", candles: true },
-  { symbol: "NDX", yahoo: "^IXIC", name: "Nasdaq Composite", role: "US growth-heavy stocks", kind: "index", candles: false },
-  { symbol: "TNX", yahoo: "^TNX", name: "10-year Treasury", role: "US interest rates", kind: "yield", candles: false },
-  { symbol: "VTI", yahoo: "VTI", name: "Vanguard Total Stock Market", role: "US stocks sleeve", kind: "etf", candles: true },
-  { symbol: "VXUS", yahoo: "VXUS", name: "Vanguard Total International", role: "International stocks sleeve", kind: "etf", candles: true },
-  { symbol: "BND", yahoo: "BND", name: "Vanguard Total Bond Market", role: "US bonds sleeve", kind: "etf", candles: true },
-];
-
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const HEADERS = {
+  "User-Agent": "Planvest/0.1 (education; delayed quotes; no trading)",
+  Accept: "application/json",
+};
 
 function sessionDate(timestamp: number, gmtOffset: number): string {
-  const shifted = new Date((timestamp + gmtOffset) * 1000);
-  return shifted.toISOString().slice(0, 10);
+  return new Date((timestamp + gmtOffset) * 1000).toISOString().slice(0, 10);
+}
+
+function round(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function chart(yahoo: string): Promise<{
@@ -55,23 +48,14 @@ async function chart(yahoo: string): Promise<{
   candles: Candle[];
 }> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahoo)}?range=1y&interval=1d`;
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Planvest/0.1 (education; delayed quotes; no trading)",
-      Accept: "application/json",
-    },
-  });
+  const response = await fetch(url, { headers: HEADERS });
   if (!response.ok) {
     throw new Error(`${yahoo} HTTP ${response.status}`);
   }
   const body = (await response.json()) as {
     chart?: {
       result?: Array<{
-        meta?: {
-          regularMarketPrice?: number;
-          currency?: string;
-          gmtoffset?: number;
-        };
+        meta?: { regularMarketPrice?: number; currency?: string; gmtoffset?: number };
         timestamp?: number[];
         indicators?: {
           quote?: Array<{
@@ -80,7 +64,6 @@ async function chart(yahoo: string): Promise<{
             low?: Array<number | null>;
             close?: Array<number | null>;
           }>;
-          adjclose?: Array<{ adjclose?: Array<number | null> }>;
         };
       }>;
     };
@@ -102,10 +85,10 @@ async function chart(yahoo: string): Promise<{
     if ([open, high, low, close].some((value) => typeof value !== "number")) return;
     candles.push({
       time: sessionDate(stamp, offset),
-      open: open as number,
-      high: high as number,
-      low: low as number,
-      close: close as number,
+      open: round(open as number),
+      high: round(high as number),
+      low: round(low as number),
+      close: round(close as number),
     });
   });
   const closes = candles.map((candle) => candle.close);
@@ -133,28 +116,37 @@ function changePct(price: number, previousClose: number | null): number | null {
 async function main(): Promise<void> {
   const quotes: Quote[] = [];
   const candles: Record<string, Candle[]> = {};
-  for (const instrument of INSTRUMENTS) {
-    const data = await chart(instrument.yahoo);
-    quotes.push({
-      symbol: instrument.symbol,
-      name: instrument.name,
-      role: instrument.role,
-      kind: instrument.kind,
-      price: data.price,
-      changePct: changePct(data.price, data.previousClose),
-      yearReturnPct: instrument.kind === "yield" ? null : data.yearReturnPct,
-      currency: data.currency,
-    });
-    if (instrument.candles) {
-      candles[instrument.symbol] = data.candles;
+  const failures: string[] = [];
+
+  for (const instrument of UNIVERSE) {
+    try {
+      const data = await chart(instrument.yahoo);
+      quotes.push({
+        symbol: instrument.symbol,
+        name: instrument.name,
+        kind: instrument.kind,
+        price: data.price,
+        changePct: instrument.kind === "yield" ? null : changePct(data.price, data.previousClose),
+        yearReturnPct: instrument.kind === "yield" ? null : data.yearReturnPct,
+        currency: data.currency,
+      });
+      if (instrument.kind !== "yield") {
+        candles[instrument.symbol] = data.candles;
+      }
+    } catch (error) {
+      failures.push(`${instrument.symbol}: ${error instanceof Error ? error.message : String(error)}`);
     }
+    await sleep(80);
+  }
+
+  if (quotes.length < UNIVERSE.length / 2) {
+    throw new Error(`Too many Yahoo failures:\n${failures.join("\n")}`);
   }
 
   const file: MarketFile = {
     fetchedAt: new Date().toISOString(),
-    source: "Yahoo Finance v8 chart API, delayed daily OHLC. Not a brokerage feed, not SIP-complete, and not a forecast.",
-    disclaimer:
-      "Quotes and candles are history. Planvest does not predict the next bar and cannot trade an HSA or 401(k).",
+    source: "Yahoo Finance v8 chart API. Delayed daily OHLC. Not SIP, not a broker, not a forecast.",
+    disclaimer: "Public delayed quotes for reading. Planvest does not place trades.",
     quotes,
     candles,
   };
@@ -162,6 +154,9 @@ async function main(): Promise<void> {
   const out = join(ROOT, "web", "market.json");
   await writeFile(out, `${JSON.stringify(file)}\n`, "utf8");
   console.log(`Wrote ${out} (${quotes.length} quotes, ${Object.keys(candles).length} candle series)`);
+  if (failures.length > 0) {
+    console.warn(`Skipped ${failures.length}: ${failures.join("; ")}`);
+  }
 }
 
 await main();

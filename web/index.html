@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="2026 HSA contribution room and delayed market quotes for common HSA and 401(k) building blocks. Not a brokerage and not investment advice."
+      content="Delayed live quotes and 1-year candlestick charts for US stocks, ETFs, and indexes. Not a brokerage."
     />
-    <title>Planvest — 2026 HSA contribution room</title>
+    <title>Planvest — live stocks</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,29 +20,37 @@
     <div class="page">
       <header class="mast">
         <p class="brand">Planvest</p>
-        <p class="phase">Delayed quotes · not a brokerage</p>
+        <p class="phase">Yahoo delayed quotes · not a brokerage</p>
       </header>
 
       <section class="lede">
-        <h1>See the market. Still your trade to place.</h1>
+        <h1>US stocks in one place.</h1>
         <p>
-          Delayed public quotes for the three sleeves most HSA and 401(k) menus are built from,
-          plus 2026 IRS contribution room. This is market context, not a buy list, and Planvest
-          cannot trade your account.
+          Delayed public prices and 1-year daily candles from Yahoo Finance. Click a row to
+          chart it. This is a reading board, not an order ticket and not a forecast of the next bar.
         </p>
       </section>
 
       <section class="market" aria-labelledby="market-heading">
         <div class="market-head">
-          <h2 id="market-heading">Market</h2>
+          <h2 id="market-heading">Indexes</h2>
           <p id="market-stamp">Loading delayed quotes…</p>
         </div>
         <div id="index-tape" class="tape"></div>
+
+        <div class="board-head">
+          <h2>Stocks</h2>
+          <label class="search">
+            Filter
+            <input id="stock-filter" type="search" placeholder="AAPL, NVIDIA, ETF…" />
+          </label>
+        </div>
+        <div id="kind-tabs" class="segment kind-tabs" role="tablist" aria-label="Asset type"></div>
         <table class="quotes">
           <thead>
             <tr>
-              <th>Sleeve</th>
-              <th>Proxy ETF</th>
+              <th>Symbol</th>
+              <th>Name</th>
               <th>Price</th>
               <th>Day</th>
               <th>1 year</th>
@@ -50,155 +58,26 @@
           </thead>
           <tbody id="quote-body"></tbody>
         </table>
-        <p class="market-note">
-          VTI, VXUS, and BND are liquid public stand-ins for US stocks, international stocks, and US bonds.
-          Your HSA trustee or 401(k) lineup will use different tickers that track the same idea. Prices are delayed
-          and rebuilt from Yahoo Finance on a weekday schedule. Not a recommendation to buy these funds.
-        </p>
+        <p class="market-note" id="board-count"></p>
 
         <div class="chart-block">
           <div class="market-head">
-            <h2>1-year daily candles</h2>
-            <p>History. No API has a reliable read on the next bar.</p>
+            <h2 id="chart-title">1-year daily candles</h2>
+            <p>History only. No prediction API is wired in.</p>
           </div>
-          <div id="chart-tabs" class="segment chart-tabs" role="tablist" aria-label="Chart symbol"></div>
           <div id="candle-chart" class="chart-frame" role="img" aria-label="Daily candlestick chart"></div>
           <p class="market-note">
-            Green is an up day, rust is a down day. The thin line is a 50-day average of past closes — it describes
-            what already happened. A 401(k) is almost always a fund menu, not a candlestick trading desk. Use the
-            chart to see volatility in the sleeve, then allocate at your recordkeeper.
+            Source: Yahoo Finance v8 chart API, delayed. Green is an up day, rust is a down day.
+            The thin line is a 50-day average of past closes. Polygon or Twelve Data would be the
+            paid upgrade for licensed real-time ticks — those keys cannot sit in this public site.
           </p>
         </div>
       </section>
 
-      <div class="workspace">
-        <form id="hsa-form" class="panel" novalidate>
-          <h2>Your situation</h2>
-
-          <fieldset>
-            <legend>HDHP coverage</legend>
-            <div class="segment" role="radiogroup" aria-label="HDHP coverage">
-              <label>
-                <input type="radio" name="coverage" value="self" checked />
-                Self-only
-              </label>
-              <label>
-                <input type="radio" name="coverage" value="family" />
-                Family
-              </label>
-            </div>
-          </fieldset>
-
-          <label class="field">
-            Age at the end of 2026
-            <input id="age" name="age" type="number" min="0" max="120" value="40" />
-          </label>
-
-          <label class="check">
-            <input id="hdhp" name="hdhp" type="checkbox" checked />
-            I have a qualifying high-deductible health plan
-          </label>
-          <label class="check">
-            <input id="medicare" name="medicare" type="checkbox" />
-            I am enrolled in Medicare
-          </label>
-          <label class="check">
-            <input id="dependent" name="dependent" type="checkbox" />
-            Someone else can claim me as a dependent
-          </label>
-
-          <label class="field">
-            Employer HSA contributions already in for 2026
-            <input id="employer" name="employer" type="number" min="0" step="1" value="0" />
-          </label>
-          <label class="field">
-            Other 2026 HSA contributions already in
-            <input id="other" name="other" type="number" min="0" step="1" value="0" />
-          </label>
-        </form>
-
-        <aside class="result panel" aria-live="polite">
-          <p class="result-kicker" id="result-kicker">Remaining employee room</p>
-          <p class="result-value" id="result-value">$4,400</p>
-          <p class="result-sub" id="result-sub">Statutory ceiling $4,400 · self-only · age under 55</p>
-          <ul class="reasons" id="reasons" hidden></ul>
-          <div id="mix" class="mix" hidden>
-            <p class="mix-kicker">Generic mix of remaining room</p>
-            <p class="mix-sub" id="mix-sub"></p>
-            <dl class="limits" id="mix-lines"></dl>
-          </div>
-          <dl class="limits">
-            <div>
-              <dt>2026 contribution limit</dt>
-              <dd>Self $4,400 · family $8,750</dd>
-            </div>
-            <div>
-              <dt>Catch-up at age 55+</dt>
-              <dd>$1,000</dd>
-            </div>
-            <div>
-              <dt>HDHP minimum deductible</dt>
-              <dd>Self $1,700 · family $3,400</dd>
-            </div>
-            <div>
-              <dt>HDHP out-of-pocket max</dt>
-              <dd>Self $8,500 · family $17,000</dd>
-            </div>
-          </dl>
-        </aside>
-      </div>
-
-      <section class="status">
-        <h2>What is live on this site</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Capability</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>2026 HSA contribution and HDHP limit math</td>
-              <td>Live</td>
-            </tr>
-            <tr>
-              <td>Delayed index and ETF quotes (Yahoo Finance)</td>
-              <td>Live — data, not order entry</td>
-            </tr>
-            <tr>
-              <td>1-year candlestick charts + 50-day average</td>
-              <td>Live — historical OHLC, not a forecast</td>
-            </tr>
-            <tr>
-              <td>Next-candle / AI prediction API</td>
-              <td>Not used — no feed has a proven edge over ~50%</td>
-            </tr>
-            <tr>
-              <td>Plaid / SnapTrade account linking</td>
-              <td>Not live — OAuth keys and a product decision still required</td>
-            </tr>
-            <tr>
-              <td>HSA investing at a trustee (DriveWealth, Devenir, Schwab HSBA)</td>
-              <td>Not live — needs a signed trustee and broker or RIA contract</td>
-            </tr>
-            <tr>
-              <td>Employer 401(k) trading</td>
-              <td>Not live — no legitimate public consumer trade API</td>
-            </tr>
-            <tr>
-              <td>Generic market APIs (Alpaca, IBKR, and similar)</td>
-              <td>Blocked in code — wrong custody rail for HSA and 401(k)</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
       <footer>
         <p>
-          Sources: IRS Publication 969; Revenue Procedure 2025-19; Yahoo Finance delayed charts.
-          The age-based mix is a generic 110-minus-age illustration, not advice for you.
-          Planvest does not hold customer assets and cannot place a trade.
+          Delayed public market data for reading. Planvest does not hold assets, place trades,
+          or recommend securities.
         </p>
         <p>
           <a href="https://github.com/mathewb-png/planvest">Source on GitHub</a>

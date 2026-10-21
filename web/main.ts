@@ -1,54 +1,45 @@
-import { illustrativeMix, splitDollars } from "../src/allocation.ts";
-import { HSA_LIMITS_2026, remainingHsaRoom, type Coverage } from "../src/hsaLimits.ts";
 import type { Candle } from "../src/sma.ts";
+import type { AssetKind } from "../src/universe.ts";
 import { mountCandleChart } from "./chart.ts";
 import market from "./market.json";
 
 interface Quote {
   symbol: string;
   name: string;
-  role: string;
-  kind: "index" | "etf" | "yield";
+  kind: AssetKind;
   price: number;
   changePct: number | null;
   yearReturnPct: number | null;
 }
 
-const form = document.querySelector<HTMLFormElement>("#hsa-form");
-const kicker = document.querySelector("#result-kicker");
-const valueEl = document.querySelector("#result-value");
-const subEl = document.querySelector("#result-sub");
-const reasonsEl = document.querySelector("#reasons");
-const resultPanel = document.querySelector(".result");
-const mixBox = document.querySelector("#mix");
-const mixSub = document.querySelector("#mix-sub");
-const mixLines = document.querySelector("#mix-lines");
+type FilterKind = "all" | "stock" | "etf" | "index";
+
 const tape = document.querySelector("#index-tape");
 const quoteBody = document.querySelector("#quote-body");
 const stamp = document.querySelector("#market-stamp");
-const chartTabs = document.querySelector("#chart-tabs");
 const chartFrame = document.querySelector("#candle-chart");
+const chartTitle = document.querySelector("#chart-title");
+const filterInput = document.querySelector<HTMLInputElement>("#stock-filter");
+const kindTabs = document.querySelector("#kind-tabs");
+const boardCount = document.querySelector("#board-count");
 
-const CHART_SYMBOLS = [
-  { symbol: "VTI", label: "US stocks" },
-  { symbol: "VXUS", label: "Intl stocks" },
-  { symbol: "BND", label: "US bonds" },
-  { symbol: "SPX", label: "S&P 500" },
-] as const;
+const quotes = market.quotes as Quote[];
+const candleMap = ((market as { candles?: Record<string, Candle[]> }).candles ?? {}) as Record<
+  string,
+  Candle[]
+>;
 
-function money(n: number, digits = 0): string {
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+let selected = firstChartable();
+let kind: FilterKind = "all";
+
+function firstChartable(): string {
+  const preferred = ["AAPL", "SPY", "NVDA", "SPX"];
+  return preferred.find((symbol) => (candleMap[symbol] ?? []).length > 0) ?? quotes[0]?.symbol ?? "AAPL";
 }
 
 function signedPct(n: number | null): string {
   if (n === null) return "—";
-  const prefix = n > 0 ? "+" : "";
-  return `${prefix}${n.toFixed(2)}%`;
+  return `${n > 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
 function toneClass(n: number | null): string {
@@ -64,174 +55,124 @@ function formatPrice(quote: Quote): string {
   });
 }
 
-function readForm(): {
-  coverage: Coverage;
-  ageAtYearEnd: number;
-  hasQualifyingHdhp: boolean;
-  enrolledInMedicare: boolean;
-  isSomeoneElseDependent: boolean;
-  employerContributions: number;
-  otherHsaContributions: number;
-} {
-  const data = new FormData(form ?? undefined);
-  const coverage = data.get("coverage") === "family" ? "family" : "self";
-  return {
-    coverage,
-    ageAtYearEnd: Number(data.get("age") || 0),
-    hasQualifyingHdhp: Boolean(data.get("hdhp")),
-    enrolledInMedicare: Boolean(data.get("medicare")),
-    isSomeoneElseDependent: Boolean(data.get("dependent")),
-    employerContributions: Number(data.get("employer") || 0),
-    otherHsaContributions: Number(data.get("other") || 0),
-  };
+function visibleQuotes(): Quote[] {
+  const query = (filterInput?.value ?? "").trim().toLowerCase();
+  return quotes.filter((quote) => {
+    if (quote.kind === "yield") return false;
+    if (kind !== "all" && quote.kind !== kind) return false;
+    if (!query) return true;
+    return quote.symbol.toLowerCase().includes(query) || quote.name.toLowerCase().includes(query);
+  });
 }
 
-function renderMix(age: number, remaining: number, eligible: boolean): void {
-  if (!mixBox || !mixSub || !mixLines) return;
-  if (!eligible || remaining <= 0) {
-    mixBox.hidden = true;
-    return;
-  }
+function renderStamp(): void {
+  if (!stamp) return;
+  const when = new Date(market.fetchedAt);
+  stamp.textContent = `As of ${when.toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  })} · delayed`;
+}
 
-  const mix = illustrativeMix(age);
-  const dollars = splitDollars(remaining, mix);
-  mixBox.hidden = false;
-  mixSub.textContent = `Age ${age}: ${mix.stockPct.toFixed(0)}% stocks / ${mix.bondPct.toFixed(0)}% bonds. Illustration only — execute at your HSA or 401(k) provider.`;
-  mixLines.replaceChildren();
-  const rows: Array<[string, number, number]> = [
-    ["US stocks (VTI stand-in)", mix.usStockPct, dollars.usStocks],
-    ["International stocks (VXUS stand-in)", mix.intlStockPct, dollars.intlStocks],
-    ["US bonds (BND stand-in)", mix.bondPct, dollars.bonds],
+function renderTape(): void {
+  if (!tape) return;
+  tape.replaceChildren();
+  for (const quote of quotes.filter((item) => item.kind === "index")) {
+    const card = document.createElement("article");
+    const title = document.createElement("h3");
+    const value = document.createElement("p");
+    const delta = document.createElement("span");
+    title.textContent = quote.name;
+    value.textContent = formatPrice(quote);
+    delta.textContent = signedPct(quote.changePct);
+    delta.className = toneClass(quote.changePct);
+    value.append(delta);
+    card.append(title, value);
+    tape.append(card);
+  }
+}
+
+function renderKindTabs(): void {
+  if (!kindTabs) return;
+  kindTabs.replaceChildren();
+  const tabs: Array<[FilterKind, string]> = [
+    ["all", "All"],
+    ["stock", "Stocks"],
+    ["etf", "ETFs"],
+    ["index", "Indexes"],
   ];
-  for (const [label, pct, amount] of rows) {
-    const wrap = document.createElement("div");
-    const dt = document.createElement("dt");
-    const dd = document.createElement("dd");
-    dt.textContent = `${label} · ${pct.toFixed(0)}%`;
-    dd.textContent = money(amount);
-    wrap.append(dt, dd);
-    mixLines.append(wrap);
+  for (const [id, label] of tabs) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", id === kind ? "true" : "false");
+    button.addEventListener("click", () => {
+      kind = id;
+      renderKindTabs();
+      renderTable();
+    });
+    kindTabs.append(button);
   }
 }
 
-function renderCalculator(): void {
-  if (!form || !kicker || !valueEl || !subEl || !reasonsEl || !resultPanel) return;
-
-  const input = readForm();
-  const result = remainingHsaRoom({ taxYear: 2026, ...input });
-  const base =
-    input.coverage === "family" ? HSA_LIMITS_2026.contributionFamily : HSA_LIMITS_2026.contributionSelf;
-  const catchUp = input.ageAtYearEnd >= 55 ? HSA_LIMITS_2026.catchUpAge55 : 0;
-
-  valueEl.textContent = money(result.maxEmployeeContribution);
-  resultPanel.classList.toggle("ineligible", !result.eligible);
-
-  if (!result.eligible) {
-    kicker.textContent = "Not eligible to contribute";
-    subEl.textContent = "Contribution room is $0 until the eligibility issues below are resolved.";
-  } else {
-    kicker.textContent = "Remaining employee room";
-    subEl.textContent = `Statutory ceiling ${money(base + catchUp)} · ${input.coverage === "family" ? "family" : "self-only"} · ${
-      catchUp ? "includes $1,000 catch-up" : "age under 55"
-    }`;
+function renderTable(): void {
+  if (!quoteBody) return;
+  const rows = visibleQuotes();
+  quoteBody.replaceChildren();
+  for (const quote of rows) {
+    const row = document.createElement("tr");
+    row.tabIndex = 0;
+    row.dataset.symbol = quote.symbol;
+    if (quote.symbol === selected) row.classList.add("selected");
+    const cells = [
+      quote.symbol,
+      quote.name,
+      formatPrice(quote),
+      signedPct(quote.changePct),
+      signedPct(quote.yearReturnPct),
+    ];
+    const classes = ["", "", "", toneClass(quote.changePct), toneClass(quote.yearReturnPct)];
+    cells.forEach((text, index) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (classes[index]) td.className = classes[index];
+      row.append(td);
+    });
+    row.addEventListener("click", () => selectSymbol(quote.symbol));
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectSymbol(quote.symbol);
+      }
+    });
+    quoteBody.append(row);
   }
-
-  reasonsEl.replaceChildren();
-  if (result.reasons.length > 0) {
-    reasonsEl.hidden = false;
-    for (const reason of result.reasons) {
-      const item = document.createElement("li");
-      item.textContent = reason;
-      reasonsEl.append(item);
-    }
-  } else {
-    reasonsEl.hidden = true;
-  }
-
-  renderMix(input.ageAtYearEnd, result.maxEmployeeContribution, result.eligible);
-}
-
-function renderMarket(): void {
-  const quotes = market.quotes as Quote[];
-  if (stamp) {
-    const when = new Date(market.fetchedAt);
-    stamp.textContent = `As of ${when.toLocaleString("en-US", {
-      timeZone: "America/New_York",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short",
-    })} · delayed`;
-  }
-
-  if (tape) {
-    tape.replaceChildren();
-    for (const quote of quotes.filter((item) => item.kind !== "etf")) {
-      const card = document.createElement("article");
-      const title = document.createElement("h3");
-      const value = document.createElement("p");
-      const delta = document.createElement("span");
-      title.textContent = quote.name;
-      value.textContent = formatPrice(quote);
-      delta.textContent = quote.kind === "yield" ? "yield" : signedPct(quote.changePct);
-      delta.className = quote.kind === "yield" ? "" : toneClass(quote.changePct);
-      value.append(delta);
-      card.append(title, value);
-      tape.append(card);
-    }
-  }
-
-  if (quoteBody) {
-    quoteBody.replaceChildren();
-    for (const quote of quotes.filter((item) => item.kind === "etf")) {
-      const row = document.createElement("tr");
-      const day = signedPct(quote.changePct);
-      const year = signedPct(quote.yearReturnPct);
-      row.innerHTML = "";
-      const cells = [quote.role, `${quote.symbol} · ${quote.name}`, formatPrice(quote), day, year];
-      const classes = ["", "", "", toneClass(quote.changePct), toneClass(quote.yearReturnPct)];
-      cells.forEach((text, index) => {
-        const td = document.createElement("td");
-        td.textContent = text;
-        if (classes[index]) td.className = classes[index];
-        row.append(td);
-      });
-      quoteBody.append(row);
-    }
-  }
-
-  const candleMap = (market as { candles?: Record<string, Candle[]> }).candles ?? {};
-  if (chartTabs && chartFrame instanceof HTMLElement) {
-    chartTabs.replaceChildren();
-    for (const item of CHART_SYMBOLS) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = item.label;
-      button.dataset.symbol = item.symbol;
-      button.setAttribute("role", "tab");
-      button.addEventListener("click", () => selectChart(item.symbol, candleMap, chartFrame));
-      chartTabs.append(button);
-    }
-    selectChart("VTI", candleMap, chartFrame);
+  if (boardCount) {
+    boardCount.textContent = `${rows.length} names on the board. Click a row for candles.`;
   }
 }
 
-function selectChart(
-  symbol: string,
-  candleMap: Record<string, Candle[]>,
-  frame: HTMLElement,
-): void {
+function selectSymbol(symbol: string): void {
   const series = candleMap[symbol] ?? [];
-  if (series.length === 0) return;
-  for (const button of document.querySelectorAll<HTMLButtonElement>("#chart-tabs button")) {
-    button.setAttribute("aria-selected", button.dataset.symbol === symbol ? "true" : "false");
+  if (series.length === 0 || !(chartFrame instanceof HTMLElement)) return;
+  selected = symbol;
+  const quote = quotes.find((item) => item.symbol === symbol);
+  if (chartTitle) {
+    chartTitle.textContent = `${symbol}${quote ? ` · ${quote.name}` : ""} · 1-year daily candles`;
   }
-  mountCandleChart(frame, series);
+  mountCandleChart(chartFrame, series);
+  renderTable();
 }
 
-form?.addEventListener("input", renderCalculator);
-form?.addEventListener("change", renderCalculator);
-renderMarket();
-renderCalculator();
+renderStamp();
+renderTape();
+renderKindTabs();
+filterInput?.addEventListener("input", renderTable);
+renderTable();
+selectSymbol(selected);

@@ -2,7 +2,7 @@
   "name": "planvest",
   "version": "0.1.0",
   "private": true,
-  "description": "Compliance-first HSA and 401(k) investing toolkit. Market access is blocked unless a licensed custody rail is in place.",
+  "description": "Delayed US stock board. Yahoo Finance quotes and 1-year candles. Not a brokerage.",
   "type": "module",
   "engines": {
     "node": ">=22"

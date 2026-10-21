@@ -1,46 +1,32 @@
 # Planvest
 
-A compliance-first toolkit for HSA and 401(k) investing. The product is **not** wired to a generic market API. Existing HSA and employer 401(k) dollars already have a legal custodian; trades have to go through that custodian, or the money has to move to a new qualified one.
-
-This repository exists so Planvest cannot accidentally "connect to the market" on the wrong rails.
-
-## The finding
-
-There is **no legitimate public API** that takes a user's current HSA or workplace 401(k) and places stock/ETF orders at an exchange.
-
-| What people try | What actually happens |
-| --- | --- |
-| Alpaca, IBKR, Tradier, Polygon | Real market APIs for the **wrong account type**. They do not hold HSA trusts or ERISA plan assets. |
-| Plaid / SnapTrade Fidelity | Legitimate **read-only** OAuth. Fidelity, Empower, Schwab, TIAA, Vanguard workplace links do not trade. |
-| DriveWealth `HSA_*` account types | Legitimate **new** HSA investing sleeve — contract-gated, and still needs an IRS-qualified trustee for the cash HSA and Forms 5498-SA / 1099-SA. |
-| First Dollar, Alegeus, Devenir | Legitimate **B2B** HSA administrator stacks, not a retail "link my Fidelity HSA" API. |
-| Fidelity WorkplaceXchange / Empower DC | Sponsor and payroll APIs. Balances yes, participant trading no. |
-| Store NetBenefits passwords (Pontera pattern) | Not an API. Fidelity is blocking it. WA/MO regulators have called credential sharing unethical. |
-
-Full gap table: [docs/API_GAPS.md](docs/API_GAPS.md). Architecture: [docs/PRODUCT_ARCHITECTURE.md](docs/PRODUCT_ARCHITECTURE.md). Licenses: [docs/COMPLIANCE.md](docs/COMPLIANCE.md). **Not legal advice:** [docs/LEGAL_DISCLAIMER.md](docs/LEGAL_DISCLAIMER.md).
+A delayed US stock board. Quotes and 1-year daily candles in one place. Not a brokerage, not a forecast, and not an HSA or 401(k) product.
 
 ## Live
-
-The public site shows delayed market quotes and 2026 HSA contribution math. It does **not** link accounts or place trades.
 
 - Site: https://mathewb-png.github.io/planvest/
 - Local: `npm run market && npm run dev`
 
-## What ships today
+The page is a reading board: indexes, liquid stocks, and ETFs. Click a row for candles. GitHub Actions refreshes Yahoo data on weekdays.
 
-- A rail catalog (`src/rails.ts`) of real vendors and what they can actually do per account type.
-- A hard gate (`src/gates.ts`) that throws before any vendor call unless the matching trustee / RIA / BD / partner flags are on.
-- 2026 IRS HSA contribution math (`src/hsaLimits.ts`): $4,400 / $8,750 + $1,000 catch-up.
+## The API
 
-```ts
-import { assertActionAllowed } from "./src/index.ts";
+**Yahoo Finance v8 chart** is the live feed. No key, delayed daily OHLC, works from GitHub Actions.
 
-// Always throws: Alpaca is not an HSA custodian.
-assertActionAllowed("alpaca", "hsa", "place_trade");
+| Job | API | Why this one |
+| --- | --- | --- |
+| Delayed quotes + 1-year candles | **Yahoo Finance v8** (`/v8/finance/chart`) | The feed that actually works here without a secret |
+| Licensed real-time ticks | Polygon / Massive | Paid, exchange-licensed. Keys cannot sit in a public GitHub Pages site |
+| Indicators on a paid key | Twelve Data | Fine for RSI/MACD. Its `tsf` forecast is just a regression, not an edge |
+| Clean history / backtests | Tiingo | Adjusted daily series |
 
-// Allowed: read-only OAuth.
-assertActionAllowed("plaid_investments", "401k", "read_holdings");
-```
+Yahoo’s v7 batch quote endpoint returns Unauthorized. Each symbol is fetched from v8. There is no honest “best prediction” API — sign accuracy on the next bar sits around 50%.
+
+## What this is not
+
+- Not SIP real-time (Yahoo is delayed)
+- Not an order ticket
+- Not an HSA or 401(k) connector. Those accounts still need their own trustee or recordkeeper. See [docs/API_GAPS.md](docs/API_GAPS.md) if you need that path later.
 
 ## Run
 
@@ -48,9 +34,10 @@ Requires Node 22+.
 
 ```bash
 npm test
-npm run matrix
+npm run market
+npm run dev
 ```
 
 ## GitHub
 
-Private repo. Do not commit `.env`. Partner keys go in only after a signed custody agreement.
+Do not commit `.env`. Paid market-data keys never go in the public frontend.

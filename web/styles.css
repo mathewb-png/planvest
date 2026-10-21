@@ -113,9 +113,9 @@ table td {
 
 .tape {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin: 8px 0 20px;
+  margin: 8px 0 28px;
 }
 
 .tape article {
@@ -168,6 +168,75 @@ table.quotes td:last-child {
 .market-note {
   margin-top: 12px;
   max-width: 46rem;
+}
+
+.board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.board-head h2 {
+  margin: 0;
+}
+
+.search {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.search input {
+  width: min(260px, 70vw);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.kind-tabs {
+  max-width: 28rem;
+  margin-bottom: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kind-tabs button,
+.chart-tabs button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kind-tabs button[aria-selected="true"],
+.chart-tabs button[aria-selected="true"] {
+  border-color: var(--forest);
+  color: var(--forest);
+  font-weight: 600;
+}
+
+table.quotes tbody tr {
+  cursor: pointer;
+}
+
+table.quotes tbody tr:hover td,
+table.quotes tbody tr.selected td {
+  color: var(--ink);
+}
+
+table.quotes tbody tr.selected {
+  background: #ebe6d9;
 }
 
 .chart-block {
@@ -406,8 +475,13 @@ footer a {
   .workspace,
   .mast,
   .tape,
-  .market-head {
+  .market-head,
+  .board-head {
     display: block;
+  }
+
+  .search {
+    margin-top: 12px;
   }
 
   .tape article {
