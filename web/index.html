@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="2026 HSA contribution room calculator. IRS limits only. Planvest is not a brokerage and does not place trades."
+      content="2026 HSA contribution room and delayed market quotes for common HSA and 401(k) building blocks. Not a brokerage and not investment advice."
     />
     <title>Planvest — 2026 HSA contribution room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,15 +20,40 @@
     <div class="page">
       <header class="mast">
         <p class="brand">Planvest</p>
-        <p class="phase">Phase 0 · live · not a brokerage</p>
+        <p class="phase">Delayed quotes · not a brokerage</p>
       </header>
 
       <section class="lede">
-        <h1>How much can you still put in an HSA in 2026?</h1>
+        <h1>See the market. Still your trade to place.</h1>
         <p>
-          This page uses the IRS inflation-adjusted limits from Revenue Procedure 2025-19.
-          It does not connect to a bank, HSA trustee, 401(k) recordkeeper, or any market API.
-          It is not tax, legal, or investment advice.
+          Delayed public quotes for the three sleeves most HSA and 401(k) menus are built from,
+          plus 2026 IRS contribution room. This is market context, not a buy list, and Planvest
+          cannot trade your account.
+        </p>
+      </section>
+
+      <section class="market" aria-labelledby="market-heading">
+        <div class="market-head">
+          <h2 id="market-heading">Market</h2>
+          <p id="market-stamp">Loading delayed quotes…</p>
+        </div>
+        <div id="index-tape" class="tape"></div>
+        <table class="quotes">
+          <thead>
+            <tr>
+              <th>Sleeve</th>
+              <th>Proxy ETF</th>
+              <th>Price</th>
+              <th>Day</th>
+              <th>1 year</th>
+            </tr>
+          </thead>
+          <tbody id="quote-body"></tbody>
+        </table>
+        <p class="market-note">
+          VTI, VXUS, and BND are liquid public stand-ins for US stocks, international stocks, and US bonds.
+          Your HSA trustee or 401(k) lineup will use different tickers that track the same idea. Prices are delayed
+          and rebuilt from Yahoo Finance on a weekday schedule. Not a recommendation to buy these funds.
         </p>
       </section>
 
@@ -83,6 +108,11 @@
           <p class="result-value" id="result-value">$4,400</p>
           <p class="result-sub" id="result-sub">Statutory ceiling $4,400 · self-only · age under 55</p>
           <ul class="reasons" id="reasons" hidden></ul>
+          <div id="mix" class="mix" hidden>
+            <p class="mix-kicker">Generic mix of remaining room</p>
+            <p class="mix-sub" id="mix-sub"></p>
+            <dl class="limits" id="mix-lines"></dl>
+          </div>
           <dl class="limits">
             <div>
               <dt>2026 contribution limit</dt>
@@ -119,6 +149,10 @@
               <td>Live</td>
             </tr>
             <tr>
+              <td>Delayed index and ETF quotes (Yahoo Finance)</td>
+              <td>Live — data, not order entry</td>
+            </tr>
+            <tr>
               <td>Plaid / SnapTrade account linking</td>
               <td>Not live — OAuth keys and a product decision still required</td>
             </tr>
@@ -140,8 +174,9 @@
 
       <footer>
         <p>
-          Sources: IRS Publication 969; Revenue Procedure 2025-19. Planvest does not hold customer assets
-          and will not place a trade until a qualified custodian and the matching licenses are in place.
+          Sources: IRS Publication 969; Revenue Procedure 2025-19; Yahoo Finance delayed charts.
+          The age-based mix is a generic 110-minus-age illustration, not advice for you.
+          Planvest does not hold customer assets and cannot place a trade.
         </p>
         <p>
           <a href="https://github.com/mathewb-png/planvest">Source on GitHub</a>

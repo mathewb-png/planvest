@@ -81,6 +81,109 @@ table td {
   font-size: 16px;
 }
 
+.market {
+  margin: 0 0 32px;
+}
+
+.market-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.market h2,
+.panel h2,
+.status h2 {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.market-head p,
+.market-note,
+.mix-sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tape {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+
+.tape article {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+}
+
+.tape h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tape p {
+  margin: 6px 0 0;
+  font-family: Newsreader, Georgia, serif;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.tape span {
+  display: block;
+  margin-top: 2px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 13px;
+}
+
+.up {
+  color: var(--forest);
+}
+
+.down {
+  color: var(--rust);
+}
+
+table.quotes th:nth-child(n + 3),
+table.quotes td:nth-child(n + 3) {
+  text-align: right;
+}
+
+table.quotes td:last-child {
+  width: auto;
+  color: inherit;
+}
+
+.market-note {
+  margin-top: 12px;
+  max-width: 46rem;
+}
+
+.mix {
+  margin: 0 0 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mix-kicker {
+  margin: 0 0 4px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -269,8 +372,14 @@ footer a {
 
 @media (max-width: 800px) {
   .workspace,
-  .mast {
+  .mast,
+  .tape,
+  .market-head {
     display: block;
+  }
+
+  .tape article {
+    margin-bottom: 8px;
   }
 
   .phase {

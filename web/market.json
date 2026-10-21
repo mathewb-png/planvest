@@ -1,0 +1,67 @@
+{
+  "fetchedAt": "2026-10-21T19:01:52.239Z",
+  "source": "Yahoo Finance v8 chart API, delayed. Not a brokerage feed and not SIP-complete.",
+  "disclaimer": "Quotes are for education. Planvest does not recommend these securities and cannot trade an HSA or 401(k).",
+  "quotes": [
+    {
+      "symbol": "SPX",
+      "name": "S&P 500",
+      "role": "US large-cap stocks",
+      "kind": "index",
+      "price": 7741.64,
+      "changePct": 0.3769194502455608,
+      "yearReturnPct": 14.940426621812373,
+      "currency": "USD"
+    },
+    {
+      "symbol": "NDX",
+      "name": "Nasdaq Composite",
+      "role": "US growth-heavy stocks",
+      "kind": "index",
+      "price": 26640.174,
+      "changePct": 0.814967462231439,
+      "yearReturnPct": 16.060629602139294,
+      "currency": "USD"
+    },
+    {
+      "symbol": "TNX",
+      "name": "10-year Treasury",
+      "role": "US interest rates",
+      "kind": "yield",
+      "price": 5.1150002,
+      "changePct": -0.039083505111813875,
+      "yearReturnPct": null,
+      "currency": "USD"
+    },
+    {
+      "symbol": "VTI",
+      "name": "Vanguard Total Stock Market",
+      "role": "US stocks sleeve",
+      "kind": "etf",
+      "price": 378.435,
+      "changePct": 0.3566797515636532,
+      "yearReturnPct": 15.667718760254553,
+      "currency": "USD"
+    },
+    {
+      "symbol": "VXUS",
+      "name": "Vanguard Total International",
+      "role": "International stocks sleeve",
+      "kind": "etf",
+      "price": 83.795,
+      "changePct": 0.06568203682062353,
+      "yearReturnPct": 15.820755443213105,
+      "currency": "USD"
+    },
+    {
+      "symbol": "BND",
+      "name": "Vanguard Total Bond Market",
+      "role": "US bonds sleeve",
+      "kind": "etf",
+      "price": 70.64,
+      "changePct": -0.15547703180211933,
+      "yearReturnPct": -2.050171151741144,
+      "currency": "USD"
+    }
+  ]
+}

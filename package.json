@@ -8,9 +8,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts",
+    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts src/allocation.test.ts",
     "typecheck": "tsc --noEmit",
     "matrix": "node --experimental-strip-types src/printMatrix.ts",
+    "market": "node --experimental-strip-types scripts/fetchMarket.ts",
     "dev": "vite",
     "build:web": "vite build",
     "preview": "vite preview --port 4173 --strictPort"

@@ -21,10 +21,10 @@ Full gap table: [docs/API_GAPS.md](docs/API_GAPS.md). Architecture: [docs/PRODUC
 
 ## Live
 
-Phase 0 is a public calculator only. It does **not** link accounts or place trades.
+The public site shows delayed market quotes and 2026 HSA contribution math. It does **not** link accounts or place trades.
 
 - Site: https://mathewb-png.github.io/planvest/
-- Local: `npm run dev`
+- Local: `npm run market && npm run dev`
 
 ## What ships today
 
