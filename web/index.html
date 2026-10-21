@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="2026 HSA contribution room calculator. IRS limits only. Planvest is not a brokerage and does not place trades."
+    />
+    <title>Planvest — 2026 HSA contribution room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="mast">
+        <p class="brand">Planvest</p>
+        <p class="phase">Phase 0 · live · not a brokerage</p>
+      </header>
+
+      <section class="lede">
+        <h1>How much can you still put in an HSA in 2026?</h1>
+        <p>
+          This page uses the IRS inflation-adjusted limits from Revenue Procedure 2025-19.
+          It does not connect to a bank, HSA trustee, 401(k) recordkeeper, or any market API.
+          It is not tax, legal, or investment advice.
+        </p>
+      </section>
+
+      <div class="workspace">
+        <form id="hsa-form" class="panel" novalidate>
+          <h2>Your situation</h2>
+
+          <fieldset>
+            <legend>HDHP coverage</legend>
+            <div class="segment" role="radiogroup" aria-label="HDHP coverage">
+              <label>
+                <input type="radio" name="coverage" value="self" checked />
+                Self-only
+              </label>
+              <label>
+                <input type="radio" name="coverage" value="family" />
+                Family
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            Age at the end of 2026
+            <input id="age" name="age" type="number" min="0" max="120" value="40" />
+          </label>
+
+          <label class="check">
+            <input id="hdhp" name="hdhp" type="checkbox" checked />
+            I have a qualifying high-deductible health plan
+          </label>
+          <label class="check">
+            <input id="medicare" name="medicare" type="checkbox" />
+            I am enrolled in Medicare
+          </label>
+          <label class="check">
+            <input id="dependent" name="dependent" type="checkbox" />
+            Someone else can claim me as a dependent
+          </label>
+
+          <label class="field">
+            Employer HSA contributions already in for 2026
+            <input id="employer" name="employer" type="number" min="0" step="1" value="0" />
+          </label>
+          <label class="field">
+            Other 2026 HSA contributions already in
+            <input id="other" name="other" type="number" min="0" step="1" value="0" />
+          </label>
+        </form>
+
+        <aside class="result panel" aria-live="polite">
+          <p class="result-kicker" id="result-kicker">Remaining employee room</p>
+          <p class="result-value" id="result-value">$4,400</p>
+          <p class="result-sub" id="result-sub">Statutory ceiling $4,400 · self-only · age under 55</p>
+          <ul class="reasons" id="reasons" hidden></ul>
+          <dl class="limits">
+            <div>
+              <dt>2026 contribution limit</dt>
+              <dd>Self $4,400 · family $8,750</dd>
+            </div>
+            <div>
+              <dt>Catch-up at age 55+</dt>
+              <dd>$1,000</dd>
+            </div>
+            <div>
+              <dt>HDHP minimum deductible</dt>
+              <dd>Self $1,700 · family $3,400</dd>
+            </div>
+            <div>
+              <dt>HDHP out-of-pocket max</dt>
+              <dd>Self $8,500 · family $17,000</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+
+      <section class="status">
+        <h2>What is live on this site</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026 HSA contribution and HDHP limit math</td>
+              <td>Live</td>
+            </tr>
+            <tr>
+              <td>Plaid / SnapTrade account linking</td>
+              <td>Not live — OAuth keys and a product decision still required</td>
+            </tr>
+            <tr>
+              <td>HSA investing at a trustee (DriveWealth, Devenir, Schwab HSBA)</td>
+              <td>Not live — needs a signed trustee and broker or RIA contract</td>
+            </tr>
+            <tr>
+              <td>Employer 401(k) trading</td>
+              <td>Not live — no legitimate public consumer trade API</td>
+            </tr>
+            <tr>
+              <td>Generic market APIs (Alpaca, IBKR, and similar)</td>
+              <td>Blocked in code — wrong custody rail for HSA and 401(k)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        <p>
+          Sources: IRS Publication 969; Revenue Procedure 2025-19. Planvest does not hold customer assets
+          and will not place a trade until a qualified custodian and the matching licenses are in place.
+        </p>
+        <p>
+          <a href="https://github.com/mathewb-png/planvest">Source on GitHub</a>
+        </p>
+      </footer>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

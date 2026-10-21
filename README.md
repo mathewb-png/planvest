@@ -19,6 +19,13 @@ There is **no legitimate public API** that takes a user's current HSA or workpla
 
 Full gap table: [docs/API_GAPS.md](docs/API_GAPS.md). Architecture: [docs/PRODUCT_ARCHITECTURE.md](docs/PRODUCT_ARCHITECTURE.md). Licenses: [docs/COMPLIANCE.md](docs/COMPLIANCE.md). **Not legal advice:** [docs/LEGAL_DISCLAIMER.md](docs/LEGAL_DISCLAIMER.md).
 
+## Live
+
+Phase 0 is a public calculator only. It does **not** link accounts or place trades.
+
+- Site: https://mathewb-png.github.io/planvest/
+- Local: `npm run dev`
+
 ## What ships today
 
 - A rail catalog (`src/rails.ts`) of real vendors and what they can actually do per account type.

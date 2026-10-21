@@ -1,0 +1,287 @@
+:root {
+  --paper: #f3efe6;
+  --ink: #1b1916;
+  --muted: #5c564c;
+  --line: #d7d0c3;
+  --panel: #fcfaf4;
+  --forest: #1e4a38;
+  --rust: #8c3b1e;
+  --live: #1e4a38;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+.page {
+  width: min(1080px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 40px 0 72px;
+}
+
+.mast {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+
+.brand {
+  margin: 0;
+  font-family: Newsreader, Georgia, serif;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.phase {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lede {
+  max-width: 42rem;
+  padding: 36px 0 28px;
+}
+
+.lede h1 {
+  margin: 0 0 12px;
+  font-family: Newsreader, Georgia, serif;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.lede p,
+footer p,
+.field,
+.check,
+.limits dd,
+table td {
+  line-height: 1.5;
+}
+
+.lede p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 24px;
+}
+
+.panel h2,
+.status h2 {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+fieldset {
+  border: 0;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+legend,
+.field {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.segment label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.segment label:has(input:checked) {
+  border-color: var(--forest);
+  color: var(--forest);
+  font-weight: 600;
+}
+
+.field input[type="number"] {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.result-kicker {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result-value {
+  margin: 8px 0 4px;
+  font-family: Newsreader, Georgia, serif;
+  font-size: 64px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--forest);
+}
+
+.result.ineligible .result-value {
+  color: var(--rust);
+}
+
+.result-sub {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.reasons {
+  margin: 0 0 20px;
+  padding-left: 18px;
+  color: var(--rust);
+  font-size: 14px;
+}
+
+.limits {
+  margin-top: auto;
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.limits div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.limits dt {
+  color: var(--muted);
+}
+
+.limits dd {
+  margin: 0;
+  text-align: right;
+}
+
+.status {
+  margin-top: 48px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+td:last-child {
+  color: var(--muted);
+  width: 46%;
+}
+
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+footer a {
+  color: var(--forest);
+}
+
+@media (max-width: 800px) {
+  .workspace,
+  .mast {
+    display: block;
+  }
+
+  .phase {
+    margin-top: 8px;
+  }
+
+  .result-value {
+    font-size: 48px;
+  }
+
+  td:last-child {
+    width: auto;
+  }
+}

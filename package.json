@@ -10,10 +10,14 @@
   "scripts": {
     "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts",
     "typecheck": "tsc --noEmit",
-    "matrix": "node --experimental-strip-types src/printMatrix.ts"
+    "matrix": "node --experimental-strip-types src/printMatrix.ts",
+    "dev": "vite",
+    "build:web": "vite build",
+    "preview": "vite preview --port 4173 --strictPort"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
   }
 }
