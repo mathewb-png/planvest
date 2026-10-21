@@ -1,6 +1,15 @@
 import { writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  MSN_API_KEY,
+  MSN_ASSETS,
+  MSN_SUGGEST,
+  candlesFromSeries,
+  flattenMsn,
+  summarizeEarnings,
+  type EarningsSummary,
+} from "../src/msn.ts";
 import type { Candle } from "../src/sma.ts";
 import { UNIVERSE, type AssetKind } from "../src/universe.ts";
 
@@ -20,6 +29,7 @@ export interface MarketFile {
   disclaimer: string;
   quotes: Quote[];
   candles: Record<string, Candle[]>;
+  earnings: Record<string, EarningsSummary>;
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,132 +38,157 @@ const HEADERS = {
   Accept: "application/json",
 };
 
-function sessionDate(timestamp: number, gmtOffset: number): string {
-  return new Date((timestamp + gmtOffset) * 1000).toISOString().slice(0, 10);
-}
-
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function chart(yahoo: string): Promise<{
-  price: number;
-  previousClose: number | null;
-  yearReturnPct: number | null;
-  currency: string;
-  candles: Candle[];
-}> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahoo)}?range=1y&interval=1d`;
-  const response = await fetch(url, { headers: HEADERS });
-  if (!response.ok) {
-    throw new Error(`${yahoo} HTTP ${response.status}`);
+async function getJson(url: string, attempts = 3): Promise<unknown> {
+  let last = "request failed";
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const response = await fetch(url, { headers: HEADERS });
+    if (response.ok) return response.json();
+    last = `HTTP ${response.status}`;
+    if (response.status !== 503 && response.status !== 429) break;
+    await sleep(250 * (attempt + 1));
   }
-  const body = (await response.json()) as {
-    chart?: {
-      result?: Array<{
-        meta?: { regularMarketPrice?: number; currency?: string; gmtoffset?: number };
-        timestamp?: number[];
-        indicators?: {
-          quote?: Array<{
-            open?: Array<number | null>;
-            high?: Array<number | null>;
-            low?: Array<number | null>;
-            close?: Array<number | null>;
-          }>;
-        };
-      }>;
-    };
-  };
-  const result = body.chart?.result?.[0];
-  const price = result?.meta?.regularMarketPrice;
-  if (typeof price !== "number") {
-    throw new Error(`${yahoo} missing regularMarketPrice`);
-  }
-  const offset = result?.meta?.gmtoffset ?? 0;
-  const timestamps = result?.timestamp ?? [];
-  const quote = result?.indicators?.quote?.[0];
-  const candles: Candle[] = [];
-  timestamps.forEach((stamp, index) => {
-    const open = quote?.open?.[index];
-    const high = quote?.high?.[index];
-    const low = quote?.low?.[index];
-    const close = quote?.close?.[index];
-    if ([open, high, low, close].some((value) => typeof value !== "number")) return;
-    candles.push({
-      time: sessionDate(stamp, offset),
-      open: round(open as number),
-      high: round(high as number),
-      low: round(low as number),
-      close: round(close as number),
-    });
-  });
-  const closes = candles.map((candle) => candle.close);
-  const first = closes[0];
-  const previousClose = closes.length >= 2 ? closes[closes.length - 2] : null;
-  const last = closes[closes.length - 1];
-  const yearReturnPct =
-    typeof first === "number" && first !== 0 && typeof last === "number"
-      ? ((last - first) / first) * 100
-      : null;
-  return {
-    price,
-    previousClose,
-    yearReturnPct,
-    currency: result?.meta?.currency ?? "USD",
-    candles,
-  };
+  throw new Error(last);
 }
 
-function changePct(price: number, previousClose: number | null): number | null {
-  if (previousClose === null || previousClose === 0) return null;
-  return ((price - previousClose) / previousClose) * 100;
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+async function resolveId(query: string): Promise<string | null> {
+  const url = `${MSN_SUGGEST}?query=${encodeURIComponent(query)}&market=en-us&count=1`;
+  const body = (await getJson(url)) as { data?: { stocks?: string[] } };
+  const raw = body.data?.stocks?.[0];
+  if (!raw) return null;
+  const parsed = typeof raw === "string" ? (JSON.parse(raw) as { SecId?: string; RT00S?: string }) : raw;
+  return parsed.SecId ?? null;
+}
+
+function yearReturn(candles: Candle[]): number | null {
+  const first = candles[0]?.close;
+  const last = candles[candles.length - 1]?.close;
+  if (typeof first !== "number" || first === 0 || typeof last !== "number") return null;
+  return ((last - first) / first) * 100;
 }
 
 async function main(): Promise<void> {
-  const quotes: Quote[] = [];
-  const candles: Record<string, Candle[]> = {};
+  const ids = new Map<string, string>();
   const failures: string[] = [];
 
   for (const instrument of UNIVERSE) {
     try {
-      const data = await chart(instrument.yahoo);
-      quotes.push({
-        symbol: instrument.symbol,
-        name: instrument.name,
-        kind: instrument.kind,
-        price: data.price,
-        changePct: instrument.kind === "yield" ? null : changePct(data.price, data.previousClose),
-        yearReturnPct: instrument.kind === "yield" ? null : data.yearReturnPct,
-        currency: data.currency,
-      });
-      if (instrument.kind !== "yield") {
-        candles[instrument.symbol] = data.candles;
-      }
+      const id = await resolveId(instrument.symbol);
+      if (!id) throw new Error("no MSN SecId");
+      ids.set(instrument.symbol, id);
     } catch (error) {
       failures.push(`${instrument.symbol}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    await sleep(60);
+  }
+
+  const resolved = UNIVERSE.filter((item) => ids.has(item.symbol));
+  const quotes: Quote[] = [];
+  const candles: Record<string, Candle[]> = {};
+  const earnings: Record<string, EarningsSummary> = {};
+  const idToSymbol = new Map([...ids.entries()].map(([symbol, id]) => [id, symbol]));
+
+  for (const group of chunk(resolved, 20)) {
+    const idList = group.map((item) => ids.get(item.symbol)).join(",");
+    try {
+      const rows = flattenMsn(
+        await getJson(`${MSN_ASSETS}/Finance/Quotes?apikey=${MSN_API_KEY}&ids=${idList}&wrapodata=false`),
+      );
+      for (const row of rows) {
+        const id = String(row.instrumentId ?? row.id ?? "");
+        const symbol = idToSymbol.get(id);
+        const instrument = resolved.find((item) => item.symbol === symbol);
+        const price = row.price;
+        if (!instrument || typeof price !== "number") continue;
+        quotes.push({
+          symbol: instrument.symbol,
+          name: instrument.name,
+          kind: instrument.kind,
+          price,
+          changePct: instrument.kind === "yield" ? null : typeof row.priceChangePercent === "number" ? row.priceChangePercent : null,
+          yearReturnPct: null,
+          currency: typeof row.currency === "string" ? row.currency : "USD",
+        });
+      }
+    } catch (error) {
+      failures.push(`quotes ${idList}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    await sleep(80);
+  }
+
+  for (const group of chunk(resolved.filter((item) => item.kind !== "yield"), 12)) {
+    const idList = group.map((item) => ids.get(item.symbol)).join(",");
+    try {
+      const rows = flattenMsn(
+        await getJson(
+          `${MSN_ASSETS}/Finance/Charts?apikey=${MSN_API_KEY}&ids=${idList}&type=1Y&wrapodata=false`,
+        ),
+      );
+      for (const row of rows) {
+        const id = String(row.instrumentId ?? "");
+        const symbol = idToSymbol.get(id);
+        if (!symbol || !row.series || typeof row.series !== "object") continue;
+        const series = candlesFromSeries(row.series as Parameters<typeof candlesFromSeries>[0]);
+        if (series.length === 0) continue;
+        candles[symbol] = series;
+        const quote = quotes.find((item) => item.symbol === symbol);
+        if (quote) quote.yearReturnPct = yearReturn(series);
+      }
+    } catch (error) {
+      failures.push(`charts ${idList}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    await sleep(80);
+  }
+
+  for (const group of chunk(resolved.filter((item) => item.kind === "stock"), 12)) {
+    const idList = group.map((item) => ids.get(item.symbol)).join(",");
+    try {
+      const rows = flattenMsn(
+        await getJson(`${MSN_ASSETS}/Finance/Events/Earnings?apikey=${MSN_API_KEY}&ids=${idList}&wrapodata=false`),
+      );
+      for (const row of rows) {
+        const symbol = idToSymbol.get(String(row.InstrumentId ?? row.instrumentId ?? "")) ?? String(row.Symbol ?? "");
+        const instrument = resolved.find((item) => item.symbol === symbol);
+        if (!instrument) continue;
+        earnings[instrument.symbol] = summarizeEarnings(
+          instrument.symbol,
+          instrument.name,
+          row as Parameters<typeof summarizeEarnings>[2],
+        );
+      }
+    } catch (error) {
+      failures.push(`earnings ${idList}: ${error instanceof Error ? error.message : String(error)}`);
     }
     await sleep(80);
   }
 
   if (quotes.length < UNIVERSE.length / 2) {
-    throw new Error(`Too many Yahoo failures:\n${failures.join("\n")}`);
+    throw new Error(`Too many MSN failures:\n${failures.join("\n")}`);
   }
 
   const file: MarketFile = {
     fetchedAt: new Date().toISOString(),
-    source: "Yahoo Finance v8 chart API. Delayed daily OHLC. Not SIP, not a broker, not a forecast.",
-    disclaimer: "Public delayed quotes for reading. Planvest does not place trades.",
+    source: "MSN Finance Quotes, Charts (1Y), and Events/Earnings. Public MSN Money client key. Delayed. Not a broker.",
+    disclaimer: "Public delayed quotes and earnings-call dates for reading. Planvest does not place trades.",
     quotes,
     candles,
+    earnings,
   };
 
   const out = join(ROOT, "web", "market.json");
   await writeFile(out, `${JSON.stringify(file)}\n`, "utf8");
-  console.log(`Wrote ${out} (${quotes.length} quotes, ${Object.keys(candles).length} candle series)`);
+  console.log(
+    `Wrote ${out} (${quotes.length} quotes, ${Object.keys(candles).length} candle series, ${Object.keys(earnings).length} earnings)`,
+  );
   if (failures.length > 0) {
     console.warn(`Skipped ${failures.length}: ${failures.join("; ")}`);
   }

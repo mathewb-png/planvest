@@ -5,6 +5,7 @@ export { illustrativeMix, splitDollars } from "./allocation.ts";
 export { K401_LIMITS_2026, catchUpLimit, employeeDeferralLimit, employerMatch } from "./k401Limits.ts";
 export { projectBalance } from "./k401Growth.ts";
 export { SLEEVES, MENU_BRIDGES, buildPlan } from "./k401Plan.ts";
+export { summarizeEarnings, timeslotLabel } from "./msn.ts";
 export { sma, smaLine } from "./sma.ts";
 export { ComplianceGateError } from "./types.ts";
 export type {

@@ -1,4 +1,5 @@
 import { MENU_BRIDGES, SLEEVES, buildPlan, type SleeveId } from "../src/k401Plan.ts";
+import type { EarningsCall, EarningsSummary } from "../src/msn.ts";
 import type { Candle } from "../src/sma.ts";
 import type { AssetKind } from "../src/universe.ts";
 import { mountCandleChart } from "./chart.ts";
@@ -26,6 +27,9 @@ const boardCount = document.querySelector("#board-count");
 const sleeveBox = document.querySelector("#k-sleeves");
 const bridgeBody = document.querySelector("#bridge-body");
 const form = document.querySelector("#k401-form");
+const callsBody = document.querySelector("#calls-body");
+const callsCount = document.querySelector("#calls-count");
+const callCard = document.querySelector("#call-card");
 
 const quotes = market.quotes as Quote[];
 const candleMap = ((market as { candles?: Record<string, Candle[]> }).candles ?? {}) as Record<
@@ -36,6 +40,8 @@ const candleMap = ((market as { candles?: Record<string, Candle[]> }).candles ??
 const liveYearReturnPct: Partial<Record<string, number | null>> = Object.fromEntries(
   quotes.map((quote) => [quote.symbol, quote.yearReturnPct]),
 );
+const earningsMap = ((market as { earnings?: Record<string, EarningsSummary> }).earnings ??
+  {}) as Record<string, EarningsSummary>;
 
 let selected = firstChartable();
 let kind: FilterKind = "all";
@@ -61,6 +67,26 @@ function money(n: number): string {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
+  });
+}
+
+function compactMoney(n: number | null): string {
+  if (n === null) return "—";
+  const abs = Math.abs(n);
+  if (abs >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
+  if (abs >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (abs >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+  return n.toFixed(2);
+}
+
+function callWhen(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
   });
 }
 
@@ -194,6 +220,8 @@ function selectSymbol(symbol: string): void {
   mountCandleChart(chartFrame, series);
   renderTable();
   renderBridge();
+  renderCalls();
+  renderCallCard(symbol);
 }
 
 function renderSleeves(): void {
@@ -335,6 +363,76 @@ function renderPlan(): void {
     } else {
       lastYear.textContent = "Last-year live return for this sleeve is not on the board yet.";
     }
+  }
+}
+
+function upcomingCalls(): EarningsCall[] {
+  return Object.values(earningsMap)
+    .map((item) => item.next)
+    .filter((item): item is EarningsCall => Boolean(item))
+    .sort((left, right) => Date.parse(left.date) - Date.parse(right.date));
+}
+
+function renderCalls(): void {
+  if (!callsBody) return;
+  const rows = upcomingCalls();
+  callsBody.replaceChildren();
+  for (const call of rows) {
+    const row = document.createElement("tr");
+    row.tabIndex = 0;
+    if (call.symbol === selected) row.classList.add("selected");
+    const cells = [
+      callWhen(call.date),
+      call.symbol,
+      call.period,
+      call.epsForecast === null ? "—" : call.epsForecast.toFixed(2),
+      call.timeslot ?? "—",
+    ];
+    cells.forEach((text) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      row.append(td);
+    });
+    const open = () => selectSymbol(call.symbol);
+    row.addEventListener("click", open);
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+    callsBody.append(row);
+  }
+  if (callsCount) {
+    callsCount.textContent = `${rows.length} upcoming call${rows.length === 1 ? "" : "s"} on this board. Click a row to chart the stock.`;
+  }
+}
+
+function renderCallCard(symbol: string): void {
+  if (!(callCard instanceof HTMLElement)) return;
+  const summary = earningsMap[symbol];
+  if (!summary?.next && !summary?.last) {
+    callCard.hidden = true;
+    callCard.replaceChildren();
+    return;
+  }
+  callCard.hidden = false;
+  callCard.replaceChildren();
+  const title = document.createElement("h3");
+  title.textContent = `${symbol} earnings call`;
+  callCard.append(title);
+  if (summary.next) {
+    const next = document.createElement("p");
+    next.textContent = `Next: ${callWhen(summary.next.date)} · ${summary.next.period}${summary.next.timeslot ? ` · ${summary.next.timeslot}` : ""}${summary.next.epsForecast === null ? "" : ` · EPS est. ${summary.next.epsForecast.toFixed(2)}`}${summary.next.revenueForecast === null ? "" : ` · rev est. ${compactMoney(summary.next.revenueForecast)}`}`;
+    callCard.append(next);
+  }
+  if (summary.last) {
+    const last = document.createElement("p");
+    const surprise =
+      summary.last.epsSurprisePct === null ? "" : ` · EPS surprise ${signedPct(summary.last.epsSurprisePct)}`;
+    last.textContent = `Last: ${callWhen(summary.last.date)} · ${summary.last.period}${summary.last.epsActual === null ? "" : ` · EPS ${summary.last.epsActual.toFixed(2)}`}${surprise}${summary.last.revenueActual === null ? "" : ` · rev ${compactMoney(summary.last.revenueActual)}`}`;
+    if (summary.last.epsSurprisePct !== null) last.className = toneClass(summary.last.epsSurprisePct);
+    callCard.append(last);
   }
 }
 

@@ -271,8 +271,30 @@ table.quotes tbody tr.selected {
   border: 1px solid var(--line);
 }
 
-.k401 {
+.k401,
+.earnings {
   margin: 0 0 48px;
+}
+
+.call-card {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.call-card h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.call-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .field-row {

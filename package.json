@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts src/allocation.test.ts src/sma.test.ts src/k401Limits.test.ts src/k401Growth.test.ts",
+    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts src/allocation.test.ts src/sma.test.ts src/k401Limits.test.ts src/k401Growth.test.ts src/msn.test.ts",
     "typecheck": "tsc --noEmit",
     "matrix": "node --experimental-strip-types src/printMatrix.ts",
     "market": "node --experimental-strip-types scripts/fetchMarket.ts",

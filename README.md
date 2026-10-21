@@ -1,6 +1,6 @@
 # Planvest
 
-A 401(k) calculator related to a delayed US stock board. Put in what you can contribute. See IRS room, employer match, and an illustration if that money tracked the same public markets investors watch. Not a brokerage and not a forecast.
+A 401(k) calculator related to a delayed US stock board, plus earnings-call dates from MSN Finance. Put in what you can contribute. See IRS room, employer match, and an illustration if that money tracked the same public markets investors watch. Not a brokerage and not a forecast.
 
 ## Live
 
@@ -13,12 +13,13 @@ A 401(k) calculator related to a delayed US stock board. Put in what you can con
 - **Employer match** as “X% of the first Y% of salary.”
 - **Growth illustration** using long-run market history (about 10% for US stocks) plus last-12-month live returns from the board. One year is not a plan.
 - **Menu map**: a typical 401(k) S&P 500 / total market / Nasdaq / small-cap / bond option tracks SPY, VTI, QQQ, IWM, and BND.
+- **Earnings calls** from MSN Finance Events/Earnings: next release, last EPS surprise.
 
 Most plans do not buy Apple or NVIDIA directly. They buy funds that track those indexes.
 
 ## The API
 
-**Yahoo Finance v8 chart** is the live feed. No key, delayed daily OHLC, works from GitHub Actions.
+**MSN Finance** is the live feed: Quotes, Charts (`type=1Y`), and Events/Earnings. Tickers resolve through Bing finance autosuggest. Fetched in GitHub Actions, then served as `market.json`.
 
 There is no honest “best prediction” API. Sign accuracy on the next bar sits around 50%. Trades still go through the employer’s recordkeeper — there is no public 401(k) trade API. See [docs/API_GAPS.md](docs/API_GAPS.md).
 

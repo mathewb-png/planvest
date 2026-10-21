@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="401(k) contribution and growth calculator related to delayed live US stock, ETF, and index quotes. Not a brokerage."
+      content="401(k) calculator plus MSN Finance delayed quotes and earnings-call dates. Not a brokerage."
     />
-    <title>Planvest — 401(k) and live stocks</title>
+    <title>Planvest — 401(k), stocks, earnings calls</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,7 +20,7 @@
     <div class="page">
       <header class="mast">
         <p class="brand">Planvest</p>
-        <p class="phase">401(k) math · Yahoo delayed quotes</p>
+        <p class="phase">401(k) math · MSN Finance</p>
       </header>
 
       <section class="lede">
@@ -29,7 +29,8 @@
           Put in what you can contribute. See the 2026 IRS room, the employer match, and an
           illustration of how that money could compound if it tracked the same public markets
           investors watch. Most plans do not buy single stocks. They buy funds that track the
-          indexes on the board below. This is not a forecast and not a trade.
+          indexes on the board below. Earnings-call dates come from the same MSN Finance feed
+          investors read on MSN Money. This is not a forecast and not a trade.
         </p>
       </section>
 
@@ -134,6 +135,26 @@
         </p>
       </section>
 
+      <section class="earnings" aria-labelledby="calls-heading">
+        <div class="market-head">
+          <h2 id="calls-heading">Earnings calls</h2>
+          <p>MSN Finance Events/Earnings · upcoming from this board</p>
+        </div>
+        <table class="quotes">
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Symbol</th>
+              <th>Period</th>
+              <th>EPS est.</th>
+              <th>Slot</th>
+            </tr>
+          </thead>
+          <tbody id="calls-body"></tbody>
+        </table>
+        <p class="market-note" id="calls-count"></p>
+      </section>
+
       <section class="market" aria-labelledby="market-heading">
         <div class="market-head">
           <h2 id="market-heading">The market those funds track</h2>
@@ -166,19 +187,21 @@
         <div class="chart-block">
           <div class="market-head">
             <h2 id="chart-title">1-year daily candles</h2>
-            <p>History only. No prediction API is wired in.</p>
+            <p>MSN 1Y chart · history only</p>
           </div>
+          <div id="call-card" class="call-card" hidden></div>
           <div id="candle-chart" class="chart-frame" role="img" aria-label="Daily candlestick chart"></div>
           <p class="market-note">
-            Source: Yahoo Finance v8 chart API, delayed. Green is an up day, rust is a down day.
-            The thin line is a 50-day average of past closes.
+            Source: MSN Finance Quotes, Charts, and Events/Earnings. Green is an up day, rust is a
+            down day. The thin line is a 50-day average of past closes. Earnings-call times are the
+            company’s reported release, not a transcript.
           </p>
         </div>
       </section>
 
       <footer>
         <p>
-          Educational illustration using delayed public market data. Planvest does not hold
+          Educational illustration using delayed MSN Finance data. Planvest does not hold
           assets, place trades, or recommend securities. 2026 401(k) limits from IRS Notice
           2025-67.
         </p>
