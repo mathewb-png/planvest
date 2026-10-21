@@ -1,0 +1,19 @@
+{
+  "name": "planvest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Compliance-first HSA and 401(k) investing toolkit. Market access is blocked unless a licensed custody rail is in place.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts",
+    "typecheck": "tsc --noEmit",
+    "matrix": "node --experimental-strip-types src/printMatrix.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}
