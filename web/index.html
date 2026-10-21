@@ -55,6 +55,20 @@
           Your HSA trustee or 401(k) lineup will use different tickers that track the same idea. Prices are delayed
           and rebuilt from Yahoo Finance on a weekday schedule. Not a recommendation to buy these funds.
         </p>
+
+        <div class="chart-block">
+          <div class="market-head">
+            <h2>1-year daily candles</h2>
+            <p>History. No API has a reliable read on the next bar.</p>
+          </div>
+          <div id="chart-tabs" class="segment chart-tabs" role="tablist" aria-label="Chart symbol"></div>
+          <div id="candle-chart" class="chart-frame" role="img" aria-label="Daily candlestick chart"></div>
+          <p class="market-note">
+            Green is an up day, rust is a down day. The thin line is a 50-day average of past closes — it describes
+            what already happened. A 401(k) is almost always a fund menu, not a candlestick trading desk. Use the
+            chart to see volatility in the sleeve, then allocate at your recordkeeper.
+          </p>
+        </div>
       </section>
 
       <div class="workspace">
@@ -151,6 +165,14 @@
             <tr>
               <td>Delayed index and ETF quotes (Yahoo Finance)</td>
               <td>Live — data, not order entry</td>
+            </tr>
+            <tr>
+              <td>1-year candlestick charts + 50-day average</td>
+              <td>Live — historical OHLC, not a forecast</td>
+            </tr>
+            <tr>
+              <td>Next-candle / AI prediction API</td>
+              <td>Not used — no feed has a proven edge over ~50%</td>
             </tr>
             <tr>
               <td>Plaid / SnapTrade account linking</td>

@@ -1,5 +1,7 @@
 import { illustrativeMix, splitDollars } from "../src/allocation.ts";
 import { HSA_LIMITS_2026, remainingHsaRoom, type Coverage } from "../src/hsaLimits.ts";
+import type { Candle } from "../src/sma.ts";
+import { mountCandleChart } from "./chart.ts";
 import market from "./market.json";
 
 interface Quote {
@@ -24,6 +26,15 @@ const mixLines = document.querySelector("#mix-lines");
 const tape = document.querySelector("#index-tape");
 const quoteBody = document.querySelector("#quote-body");
 const stamp = document.querySelector("#market-stamp");
+const chartTabs = document.querySelector("#chart-tabs");
+const chartFrame = document.querySelector("#candle-chart");
+
+const CHART_SYMBOLS = [
+  { symbol: "VTI", label: "US stocks" },
+  { symbol: "VXUS", label: "Intl stocks" },
+  { symbol: "BND", label: "US bonds" },
+  { symbol: "SPX", label: "S&P 500" },
+] as const;
 
 function money(n: number, digits = 0): string {
   return n.toLocaleString("en-US", {
@@ -190,6 +201,34 @@ function renderMarket(): void {
       quoteBody.append(row);
     }
   }
+
+  const candleMap = (market as { candles?: Record<string, Candle[]> }).candles ?? {};
+  if (chartTabs && chartFrame instanceof HTMLElement) {
+    chartTabs.replaceChildren();
+    for (const item of CHART_SYMBOLS) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = item.label;
+      button.dataset.symbol = item.symbol;
+      button.setAttribute("role", "tab");
+      button.addEventListener("click", () => selectChart(item.symbol, candleMap, chartFrame));
+      chartTabs.append(button);
+    }
+    selectChart("VTI", candleMap, chartFrame);
+  }
+}
+
+function selectChart(
+  symbol: string,
+  candleMap: Record<string, Candle[]>,
+  frame: HTMLElement,
+): void {
+  const series = candleMap[symbol] ?? [];
+  if (series.length === 0) return;
+  for (const button of document.querySelectorAll<HTMLButtonElement>("#chart-tabs button")) {
+    button.setAttribute("aria-selected", button.dataset.symbol === symbol ? "true" : "false");
+  }
+  mountCandleChart(frame, series);
 }
 
 form?.addEventListener("input", renderCalculator);

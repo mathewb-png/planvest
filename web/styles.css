@@ -170,6 +170,38 @@ table.quotes td:last-child {
   max-width: 46rem;
 }
 
+.chart-block {
+  margin-top: 28px;
+}
+
+.chart-tabs {
+  max-width: 42rem;
+  margin-bottom: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chart-tabs button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.chart-tabs button[aria-selected="true"] {
+  border-color: var(--forest);
+  color: var(--forest);
+  font-weight: 600;
+}
+
+.chart-frame {
+  height: 380px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
 .mix {
   margin: 0 0 16px;
   padding-bottom: 16px;
