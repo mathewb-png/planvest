@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Delayed live quotes and 1-year candlestick charts for US stocks, ETFs, and indexes. Not a brokerage."
+      content="401(k) contribution and growth calculator related to delayed live US stock, ETF, and index quotes. Not a brokerage."
     />
-    <title>Planvest — live stocks</title>
+    <title>Planvest — 401(k) and live stocks</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,26 +20,129 @@
     <div class="page">
       <header class="mast">
         <p class="brand">Planvest</p>
-        <p class="phase">Yahoo delayed quotes · not a brokerage</p>
+        <p class="phase">401(k) math · Yahoo delayed quotes</p>
       </header>
 
       <section class="lede">
-        <h1>US stocks in one place.</h1>
+        <h1>Your 401(k) and the market, in one place.</h1>
         <p>
-          Delayed public prices and 1-year daily candles from Yahoo Finance. Click a row to
-          chart it. This is a reading board, not an order ticket and not a forecast of the next bar.
+          Put in what you can contribute. See the 2026 IRS room, the employer match, and an
+          illustration of how that money could compound if it tracked the same public markets
+          investors watch. Most plans do not buy single stocks. They buy funds that track the
+          indexes on the board below. This is not a forecast and not a trade.
+        </p>
+      </section>
+
+      <section class="k401" aria-labelledby="k401-heading">
+        <div class="market-head">
+          <h2 id="k401-heading">401(k) calculator</h2>
+          <p>IRS Notice 2025-67 · 2026 limits</p>
+        </div>
+
+        <div class="workspace">
+          <form class="panel" id="k401-form">
+            <label class="field">
+              Age at year end
+              <input id="k-age" type="number" min="18" max="100" step="1" value="35" />
+            </label>
+            <label class="field">
+              Current 401(k) balance
+              <input id="k-balance" type="number" min="0" step="100" value="25000" />
+            </label>
+            <label class="field">
+              I will contribute this year
+              <input id="k-employee" type="number" min="0" step="100" value="8000" />
+            </label>
+            <label class="field">
+              Annual salary
+              <input id="k-salary" type="number" min="0" step="100" value="80000" />
+            </label>
+            <div class="field-row">
+              <label class="field">
+                Employer matches
+                <input id="k-match-rate" type="number" min="0" max="100" step="1" value="50" />
+              </label>
+              <label class="field">
+                of the first % of salary
+                <input id="k-match-cap" type="number" min="0" max="100" step="0.5" value="6" />
+              </label>
+            </div>
+            <label class="field">
+              Years I will keep this up
+              <input id="k-years" type="number" min="0" max="50" step="1" value="30" />
+            </label>
+            <fieldset>
+              <legend>401(k) sleeve — the public market it tracks</legend>
+              <div id="k-sleeves" class="segment sleeves"></div>
+            </fieldset>
+          </form>
+
+          <div class="panel result" id="k401-result">
+            <p class="result-kicker">Illustrated balance</p>
+            <p class="result-value balance" id="k-ending">—</p>
+            <p class="result-sub" id="k-ending-sub"></p>
+            <dl class="limits" id="k-breakdown"></dl>
+            <ul class="reasons" id="k-warnings" hidden></ul>
+            <p class="result-sub last-year" id="k-last-year"></p>
+          </div>
+        </div>
+
+        <div class="know">
+          <article>
+            <h3>Match first</h3>
+            <p>
+              The employer match is the only return that does not depend on the market. Contribute
+              at least enough to collect it before you chase a hotter ticker.
+            </p>
+          </article>
+          <article>
+            <h3>Funds, not stock picks</h3>
+            <p>
+              A typical 401(k) menu is S&amp;P 500, total market, small-cap, bonds, and a
+              target-date fund. Those are the same markets as SPY, VTI, IWM, and BND below — not
+              Apple or NVIDIA by themselves.
+            </p>
+          </article>
+          <article>
+            <h3>History is not a promise</h3>
+            <p>
+              Long-run US stock illustrations use about 10% a year because that is what a century
+              of the S&amp;P 500 did, including down years. Last year’s live return is shown so you
+              can see the difference. One year is not a plan.
+            </p>
+          </article>
+        </div>
+
+        <div class="market-head">
+          <h2>How a 401(k) menu maps to this board</h2>
+          <p>Click a row to chart the public market that fund tracks</p>
+        </div>
+        <table class="quotes">
+          <thead>
+            <tr>
+              <th>401(k) menu name</th>
+              <th>Board ticker</th>
+              <th>Last 12 months</th>
+            </tr>
+          </thead>
+          <tbody id="bridge-body"></tbody>
+        </table>
+        <p class="market-note">
+          Pre-tax 401(k) money grows tax-deferred; withdrawals are taxed as ordinary income. Roth
+          401(k) uses after-tax dollars; qualified withdrawals are tax-free. The big number is
+          account value, not take-home. Trades still go through your employer’s recordkeeper.
         </p>
       </section>
 
       <section class="market" aria-labelledby="market-heading">
         <div class="market-head">
-          <h2 id="market-heading">Indexes</h2>
+          <h2 id="market-heading">The market those funds track</h2>
           <p id="market-stamp">Loading delayed quotes…</p>
         </div>
         <div id="index-tape" class="tape"></div>
 
         <div class="board-head">
-          <h2>Stocks</h2>
+          <h2>Stocks and ETFs</h2>
           <label class="search">
             Filter
             <input id="stock-filter" type="search" placeholder="AAPL, NVIDIA, ETF…" />
@@ -68,16 +171,16 @@
           <div id="candle-chart" class="chart-frame" role="img" aria-label="Daily candlestick chart"></div>
           <p class="market-note">
             Source: Yahoo Finance v8 chart API, delayed. Green is an up day, rust is a down day.
-            The thin line is a 50-day average of past closes. Polygon or Twelve Data would be the
-            paid upgrade for licensed real-time ticks — those keys cannot sit in this public site.
+            The thin line is a 50-day average of past closes.
           </p>
         </div>
       </section>
 
       <footer>
         <p>
-          Delayed public market data for reading. Planvest does not hold assets, place trades,
-          or recommend securities.
+          Educational illustration using delayed public market data. Planvest does not hold
+          assets, place trades, or recommend securities. 2026 401(k) limits from IRS Notice
+          2025-67.
         </p>
         <p>
           <a href="https://github.com/mathewb-png/planvest">Source on GitHub</a>

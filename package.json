@@ -2,13 +2,13 @@
   "name": "planvest",
   "version": "0.1.0",
   "private": true,
-  "description": "Delayed US stock board. Yahoo Finance quotes and 1-year candles. Not a brokerage.",
+  "description": "401(k) calculator related to delayed US market quotes. Not a brokerage.",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts src/allocation.test.ts src/sma.test.ts",
+    "test": "node --experimental-strip-types --test src/gates.test.ts src/hsaLimits.test.ts src/allocation.test.ts src/sma.test.ts src/k401Limits.test.ts src/k401Growth.test.ts",
     "typecheck": "tsc --noEmit",
     "matrix": "node --experimental-strip-types src/printMatrix.ts",
     "market": "node --experimental-strip-types scripts/fetchMarket.ts",

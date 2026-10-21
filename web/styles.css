@@ -271,6 +271,68 @@ table.quotes tbody tr.selected {
   border: 1px solid var(--line);
 }
 
+.k401 {
+  margin: 0 0 48px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sleeves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+.sleeves label {
+  position: relative;
+}
+
+.sleeves input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.know {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+
+.know article {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 16px 18px;
+}
+
+.know h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.know p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.result-value.balance {
+  font-size: clamp(36px, 5vw, 56px);
+}
+
+.last-year {
+  margin-top: 16px;
+}
+
 .mix {
   margin: 0 0 16px;
   padding-bottom: 16px;
@@ -404,6 +466,10 @@ legend,
   font-size: 14px;
 }
 
+.reasons.hints {
+  color: var(--muted);
+}
+
 .limits {
   margin-top: auto;
   display: grid;
@@ -476,8 +542,14 @@ footer a {
   .mast,
   .tape,
   .market-head,
-  .board-head {
+  .board-head,
+  .know,
+  .field-row {
     display: block;
+  }
+
+  .know article {
+    margin-bottom: 8px;
   }
 
   .search {

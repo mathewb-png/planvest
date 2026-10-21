@@ -19,6 +19,7 @@ export const UNIVERSE: Instrument[] = [
   { symbol: "IWM", yahoo: "IWM", name: "iShares Russell 2000", kind: "etf" },
   { symbol: "VTI", yahoo: "VTI", name: "Vanguard Total Stock Market", kind: "etf" },
   { symbol: "GLD", yahoo: "GLD", name: "SPDR Gold Shares", kind: "etf" },
+  { symbol: "BND", yahoo: "BND", name: "Vanguard Total Bond Market", kind: "etf" },
   { symbol: "AAPL", yahoo: "AAPL", name: "Apple", kind: "stock" },
   { symbol: "MSFT", yahoo: "MSFT", name: "Microsoft", kind: "stock" },
   { symbol: "NVDA", yahoo: "NVDA", name: "NVIDIA", kind: "stock" },
