@@ -154,7 +154,7 @@ function renderTable(): void {
     quoteBody.append(row);
   }
   if (boardCount) {
-    boardCount.textContent = `${rows.length} names on the board. Click a row for candles.`;
+    boardCount.textContent = `${rows.length} ${rows.length === 1 ? "name" : "names"} on the board. Click a row for candles.`;
   }
 }
 
